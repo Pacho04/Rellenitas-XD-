@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { db } from "./firebase";
+import { db } from "../src/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import PaginaPedidos from "./paginapedidos";
+import PaginaPedidos from "../src/paginapedidos.jsx";
  
 // ── SVG LOGO ──
 const LogoSVG = ({ size = 40, opacity = 1, id = "logo" }) => (
