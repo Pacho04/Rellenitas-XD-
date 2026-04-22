@@ -1,0 +1,19 @@
+[debug] [2026-04-22T19:48:38.004Z] ----------------------------------------------------------------------
+[debug] [2026-04-22T19:48:38.008Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\tatia\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2026-04-22T19:48:38.009Z] CLI Version:   15.15.0
+[debug] [2026-04-22T19:48:38.009Z] Platform:      win32
+[debug] [2026-04-22T19:48:38.010Z] Node Version:  v24.15.0
+[debug] [2026-04-22T19:48:38.010Z] Time:          Wed Apr 22 2026 14:48:38 GMT-0500 (hora estándar de Colombia)
+[debug] [2026-04-22T19:48:38.010Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\tatia\rellenitas
+
