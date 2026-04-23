@@ -550,39 +550,41 @@ export default function App() {
             <button className="nav-link" onClick={() => setCarritoAbierto(true)}>🛒 Mi pedido</button>
             <button className={`nav-link ${pagina === "pedidos" ? "active" : ""}`} onClick={() => setPagina("pedidos")}>🔍 Rastrear pedido</button>
             <button className={`nav-link ${pagina === "admin" ? "active" : ""}`} onClick={() => setPagina("admin")}>🔐 Admin</button>
-          </div>
-       <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
   {pagina === "inicio" && (
     <button
       className="btn-outline"
       style={{ padding: "8px 16px", fontSize: "0.85rem" }}
       onClick={() =>
-        document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })
+        document.getElementById("menu")?.scrollIntoView({
+          behavior: "smooth",
+        })
       }
     >
       Ver Menú
     </button>
   )}
 
-  {/* BOTÓN ADMIN SOLO EN CELULAR */}
-  {window.innerWidth < 640 && (
-    <button
-      onClick={() => setPagina("admin")}
-      style={{
-        background: "#f5a623",
-        color: "#111009",
-        border: "none",
-        borderRadius: 8,
-        padding: "10px 14px",
-        cursor: "pointer",
-        fontWeight: 800,
-        fontSize: "1rem"
-      }}
-    >
-      🔐
-    </button>
-  )}
+  {/* LOGO CON TOQUE SECRETO */}
+  <img
+    src="/logo.png"
+    alt="Logo"
+    style={{ width: 45, height: 45, cursor: "pointer", borderRadius: "50%" }}
+    onClick={() => {
+      const taps = (window.logoTaps || 0) + 1;
+      window.logoTaps = taps;
+
+      setTimeout(() => {
+        window.logoTaps = 0;
+      }, 2000);
+
+      if (taps >= 5) {
+        setAdminMode(true);
+        alert("Modo profesional activado");
+        window.logoTaps = 0;
+      }
+    }}
+  />
 
   <button
     onClick={() => setCarritoAbierto(true)}
@@ -599,7 +601,6 @@ export default function App() {
       display: "flex",
       alignItems: "center",
       gap: "0.5rem",
-      transition: "all 0.2s"
     }}
   >
     🛒
@@ -615,14 +616,13 @@ export default function App() {
           alignItems: "center",
           justifyContent: "center",
           fontSize: "0.75rem",
-          fontWeight: 800
+          fontWeight: 800,
         }}
       >
         {totalItems}
       </span>
     )}
   </button>
-
 </div>
         </nav>
 
