@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { db } from "./firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  serverTimestamp,
-} from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import PaginaPedidos from "./paginapedidos.jsx";
 
 // ── SVG LOGO ──
@@ -227,6 +220,7 @@ function ModalConfirmarPedido({ carrito, total, onConfirmar, onClose }) {
     setEnviando(true);
     try {
       const hoy = new Date().toISOString().split("T")[0];
+      // FIX: query, where y getDocs ahora están importados correctamente arriba
       const q = query(collection(db, "pedidos"), where("fechaPedido", "==", hoy));
       const snap = await getDocs(q);
       const numCorto = String(snap.size + 1).padStart(2, "0");
@@ -376,6 +370,7 @@ function SeccionHeader({ emoji, bg, border, titulo, sub }) {
 }
 
 // ── MODAL OPCIONES ──
+// FIX: Faltaban las llaves { } del cuerpo de la función y el return () correcto
 function ModalOpciones({ item, onConfirm, onClose }) {
   const [sel, setSel] = useState(null);
   return (
@@ -536,6 +531,7 @@ export default function App() {
 
       <WatermarkBg />
 
+      {/* FIX: Todo el contenido está correctamente dentro del div raíz, no dentro del <nav> */}
       <div style={{ position: "relative", zIndex: 1 }}>
         {/* NAVBAR */}
         <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 2rem", height: "64px", background: "rgba(17,16,9,0.93)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(245,166,35,0.15)" }}>
@@ -551,83 +547,50 @@ export default function App() {
             <button className="nav-link" onClick={() => setCarritoAbierto(true)}>🛒 Mi pedido</button>
             <button className={`nav-link ${pagina === "pedidos" ? "active" : ""}`} onClick={() => setPagina("pedidos")}>🔍 Rastrear pedido</button>
             <button className={`nav-link ${pagina === "admin" ? "active" : ""}`} onClick={() => setPagina("admin")}>🔐 Admin</button>
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-  {pagina === "inicio" && (
-    <button
-      className="btn-outline"
-      style={{ padding: "8px 16px", fontSize: "0.85rem" }}
-      onClick={() =>
-        document.getElementById("menu")?.scrollIntoView({
-          behavior: "smooth",
-        })
-      }
-    >
-      Ver Menú
-    </button>
-  )}
-
-  {/* LOGO CON TOQUE SECRETO */}
-  <img
-    src="/logo.png"
-    alt="Logo"
-    style={{ width: 45, height: 45, cursor: "pointer", borderRadius: "50%" }}
-    onClick={() => {
-      const taps = (window.logoTaps || 0) + 1;
-      window.logoTaps = taps;
-
-      setTimeout(() => {
-        window.logoTaps = 0;
-      }, 2000);
-
-      if (taps >= 5) {
-        setAdminMode(true);
-        alert("Modo profesional activado");
-        window.logoTaps = 0;
-      }
-    }}
-  />
-
-  <button
-    onClick={() => setCarritoAbierto(true)}
-    className={totalItems > 0 ? "pulse" : ""}
-    style={{
-      background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)",
-      color: totalItems > 0 ? S.oscuro : S.texto,
-      border: "none",
-      borderRadius: 8,
-      padding: "10px 20px",
-      cursor: "pointer",
-      fontFamily: "'Nunito',sans-serif",
-      fontWeight: 700,
-      display: "flex",
-      alignItems: "center",
-      gap: "0.5rem",
-    }}
-  >
-    🛒
-    {totalItems > 0 && (
-      <span
-        style={{
-          background: S.oscuro,
-          color: S.naranja,
-          borderRadius: "50%",
-          width: 22,
-          height: 22,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.75rem",
-          fontWeight: 800,
-        }}
-      >
-        {totalItems}
-      </span>
-    )}
-  </button>
-</div>
-        </div>
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+              {pagina === "inicio" && (
+                <button
+                  className="btn-outline"
+                  style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+                  onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
+                >
+                  Ver Menú
+                </button>
+              )}
+             <img
+  src="/1 p.jpg"
+  alt="Logo"
+  style={{ width: 45, height: 45, cursor: "pointer", borderRadius: "50%" }}
+  onClick={() => {
+    const taps = (window.logoTaps || 0) + 1;
+    window.logoTaps = taps;
+    setTimeout(() => { window.logoTaps = 0; }, 2000);
+    if (taps >= 5) {
+      setAdminMode(true);
+      alert("Modo profesional activado");
+      window.logoTaps = 0;
+    }
+  }}
+/>  
+              
+              <button
+                onClick={() => setCarritoAbierto(true)}
+                className={totalItems > 0 ? "pulse" : ""}
+                style={{ background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)", color: totalItems > 0 ? S.oscuro : S.texto, border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                🛒
+                {totalItems > 0 && (
+                  <span style={{ background: S.oscuro, color: S.naranja, borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 800 }}>
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </nav>
 
         {/* PÁGINAS */}
+        {/* FIX: El bloque condicional de páginas ahora está correctamente FUERA del <nav> */}
         {(pagina === "pedidos" || pagina === "admin") ? (
           <PaginaPedidos vista={pagina === "admin" ? "admin" : "cliente"} codigoInicial={pedidoConfirmadoId} />
         ) : (
@@ -746,69 +709,69 @@ export default function App() {
             </footer>
           </>
         )}
-      </div>
 
-      {/* MODALES */}
-      {modalSaborItem && <ModalSabor item={modalSaborItem} onConfirm={confirmarSabor} onClose={() => setModalSaborItem(null)} />}
-      {modalItem && <ModalAdiciones item={modalItem} onConfirm={agregarConAdiciones} onClose={() => setModalItem(null)} />}
-      {modalOpcionesItem && <ModalOpciones item={modalOpcionesItem} onConfirm={confirmarOpciones} onClose={() => setModalOpcionesItem(null)} />}
-      {modalConfirmar && (
-        <ModalConfirmarPedido
-          carrito={carrito} total={total}
-          onConfirmar={onPedidoConfirmado}
-          onClose={() => { setModalConfirmar(false); if (pedidoConfirmadoId) irAPedidos(); }}
-        />
-      )}
+        {/* MODALES */}
+        {modalSaborItem && <ModalSabor item={modalSaborItem} onConfirm={confirmarSabor} onClose={() => setModalSaborItem(null)} />}
+        {modalItem && <ModalAdiciones item={modalItem} onConfirm={agregarConAdiciones} onClose={() => setModalItem(null)} />}
+        {modalOpcionesItem && <ModalOpciones item={modalOpcionesItem} onConfirm={confirmarOpciones} onClose={() => setModalOpcionesItem(null)} />}
+        {modalConfirmar && (
+          <ModalConfirmarPedido
+            carrito={carrito} total={total}
+            onConfirmar={onPedidoConfirmado}
+            onClose={() => { setModalConfirmar(false); if (pedidoConfirmadoId) irAPedidos(); }}
+          />
+        )}
 
-      {/* CARRITO */}
-      {carritoAbierto && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex" }}>
-          <div onClick={() => setCarritoAbierto(false)} style={{ flex: 1, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
-          <div style={{ width: 400, background: "#1e1a10", borderLeft: "1px solid rgba(245,166,35,0.2)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <div style={{ padding: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.8rem", letterSpacing: "0.05em" }}>Tu Carrito 🛒</h3>
-              <button onClick={() => setCarritoAbierto(false)} style={{ background: "none", border: "none", color: S.textoSub, fontSize: "1.5rem", cursor: "pointer" }}>✕</button>
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
-              {carrito.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "3rem 1rem", color: S.textoSub, fontFamily: "'Nunito',sans-serif" }}>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><LogoSVG size={64} id="cart-empty" opacity={0.25} /></div>
-                  <p>Tu carrito está vacío.<br />¡Agrega unas rellenitas!<br /><br />
-                    <span style={{ fontSize: "14px", fontWeight: "bold" }}>⚠️ Si ya pediste, ve a Rastrear mi pedido y pon tu nombre. ⚠️</span>
-                  </p>
-                </div>
-              ) : carrito.map(item => (
-                <div key={item._key} style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", padding: "1rem", marginBottom: "0.5rem", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ fontSize: "1.6rem", marginTop: "2px" }}>{item.emoji}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 700, fontSize: "0.88rem" }}>{item.nombre}</div>
-                    {item.adiciones && item.adiciones.length > 0 && (
-                      <div style={{ color: S.naranja, fontSize: "0.72rem", fontFamily: "'Nunito',sans-serif", marginTop: "0.2rem", opacity: 0.85 }}>+ {item.adiciones.map(a => a.nombre).join(", ")}</div>
-                    )}
-                    <div style={{ color: S.naranja, fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.05rem", marginTop: "0.2rem" }}>$ {(item.precio * item.qty).toLocaleString("es-CO")}</div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
-                    <button onClick={() => quitar(item._key)} style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "white", cursor: "pointer", fontSize: "1rem" }}>−</button>
-                    <span style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 700, minWidth: 16, textAlign: "center", fontSize: "0.9rem" }}>{item.qty}</span>
-                    <button onClick={() => agregar(item)} style={{ width: 26, height: 26, borderRadius: "50%", background: S.naranja, border: "none", color: S.oscuro, cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {carrito.length > 0 && (
-              <div style={{ padding: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", fontFamily: "'Nunito',sans-serif" }}>
-                  <span style={{ color: S.textoSub }}>Total</span>
-                  <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.5rem", color: S.naranja }}>$ {total.toLocaleString("es-CO")}</span>
-                </div>
-                <button className="btn-naranja" onClick={() => { setCarritoAbierto(false); setModalConfirmar(true); }} style={{ width: "100%", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                  ✅ Confirmar Pedido
-                </button>
+        {/* CARRITO */}
+        {carritoAbierto && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex" }}>
+            <div onClick={() => setCarritoAbierto(false)} style={{ flex: 1, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+            <div style={{ width: 400, background: "#1e1a10", borderLeft: "1px solid rgba(245,166,35,0.2)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <div style={{ padding: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h3 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.8rem", letterSpacing: "0.05em" }}>Tu Carrito 🛒</h3>
+                <button onClick={() => setCarritoAbierto(false)} style={{ background: "none", border: "none", color: S.textoSub, fontSize: "1.5rem", cursor: "pointer" }}>✕</button>
               </div>
-            )}
+              <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
+                {carrito.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "3rem 1rem", color: S.textoSub, fontFamily: "'Nunito',sans-serif" }}>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><LogoSVG size={64} id="cart-empty" opacity={0.25} /></div>
+                    <p>Tu carrito está vacío.<br />¡Agrega unas rellenitas!<br /><br />
+                      <span style={{ fontSize: "14px", fontWeight: "bold" }}>⚠️ Si ya pediste, ve a Rastrear mi pedido y pon tu nombre. ⚠️</span>
+                    </p>
+                  </div>
+                ) : carrito.map(item => (
+                  <div key={item._key} style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", padding: "1rem", marginBottom: "0.5rem", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <span style={{ fontSize: "1.6rem", marginTop: "2px" }}>{item.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 700, fontSize: "0.88rem" }}>{item.nombre}</div>
+                      {item.adiciones && item.adiciones.length > 0 && (
+                        <div style={{ color: S.naranja, fontSize: "0.72rem", fontFamily: "'Nunito',sans-serif", marginTop: "0.2rem", opacity: 0.85 }}>+ {item.adiciones.map(a => a.nombre).join(", ")}</div>
+                      )}
+                      <div style={{ color: S.naranja, fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.05rem", marginTop: "0.2rem" }}>$ {(item.precio * item.qty).toLocaleString("es-CO")}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
+                      <button onClick={() => quitar(item._key)} style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "white", cursor: "pointer", fontSize: "1rem" }}>−</button>
+                      <span style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 700, minWidth: 16, textAlign: "center", fontSize: "0.9rem" }}>{item.qty}</span>
+                      <button onClick={() => agregar(item)} style={{ width: 26, height: 26, borderRadius: "50%", background: S.naranja, border: "none", color: S.oscuro, cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {carrito.length > 0 && (
+                <div style={{ padding: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", fontFamily: "'Nunito',sans-serif" }}>
+                    <span style={{ color: S.textoSub }}>Total</span>
+                    <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.5rem", color: S.naranja }}>$ {total.toLocaleString("es-CO")}</span>
+                  </div>
+                  <button className="btn-naranja" onClick={() => { setCarritoAbierto(false); setModalConfirmar(true); }} style={{ width: "100%", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                    ✅ Confirmar Pedido
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
