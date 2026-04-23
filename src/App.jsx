@@ -418,6 +418,7 @@ function ModalOpciones({ item, onConfirm, onClose }) {
 // ── APP PRINCIPAL ──
 export default function App() {
   const [pagina, setPagina] = useState("inicio");
+  const [adminMode, setAdminMode] = useState(false);
   const [carrito, setCarrito] = useState([]);
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   const [modalItem, setModalItem] = useState(null);
