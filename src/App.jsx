@@ -626,7 +626,6 @@ export default function App() {
   </button>
 </div>
         </div>
-        </nav>
 
         {/* PÁGINAS */}
         {(pagina === "pedidos" || pagina === "admin") ? (
