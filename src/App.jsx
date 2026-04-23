@@ -625,6 +625,7 @@ export default function App() {
     )}
   </button>
 </div>
+        </div>
         </nav>
 
         {/* PÁGINAS */}
