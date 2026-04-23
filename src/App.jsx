@@ -107,6 +107,39 @@ const S = {
   verde: "#25d366", rojo: "#e03e2d",
 };
 
+// ── NÚMERO DE WHATSAPP (sin + ni espacios) ──
+const WA_NUMBER = "573103830424";
+
+// ── GENERAR MENSAJE WHATSAPP ──
+function generarMensajeWA({ nombre, carrito, total, tipo, direccion, codigoPedido }) {
+  const lineas = carrito.map(i => {
+    const adStr = i.adiciones && i.adiciones.length > 0
+      ? ` (+${i.adiciones.map(a => a.nombre).join(", ")})`
+      : "";
+    return `  • ${i.emoji} ${i.nombre} x${i.qty}${adStr} — $${(i.precio * i.qty).toLocaleString("es-CO")}`;
+  });
+
+  const entrega = tipo === "domicilio"
+    ? `🛵 Domicilio a: ${direccion}`
+    : "🏠 Recoge en tienda";
+
+  const msg = [
+    `🌽 *Nuevo pedido - Rellenitas XD*`,
+    ``,
+    `👤 *Cliente:* ${nombre}`,
+    `📦 *Entrega:* ${entrega}`,
+    ``,
+    `*Pedido:*`,
+    ...lineas,
+    ``,
+    `💰 *Total: $${total.toLocaleString("es-CO")}*`,
+    ``,
+    `🔖 Código: ${codigoPedido}`,
+  ].join("\n");
+
+  return encodeURIComponent(msg);
+}
+
 // ── MODAL SABOR ──
 function ModalSabor({ item, onConfirm, onClose }) {
   const [sabor, setSabor] = useState(null);
@@ -215,12 +248,12 @@ function ModalConfirmarPedido({ carrito, total, onConfirmar, onClose }) {
 
   const valido = nombre.trim() && tipo && (tipo === "recoger" || (tipo === "domicilio" && direccion.trim()));
 
+  // ── CONFIRMAR: guarda en Firebase Y abre WhatsApp ──
   const confirmar = async () => {
     if (!valido) return;
     setEnviando(true);
     try {
       const hoy = new Date().toISOString().split("T")[0];
-      // FIX: query, where y getDocs ahora están importados correctamente arriba
       const q = query(collection(db, "pedidos"), where("fechaPedido", "==", hoy));
       const snap = await getDocs(q);
       const numCorto = String(snap.size + 1).padStart(2, "0");
@@ -240,8 +273,21 @@ function ModalConfirmarPedido({ carrito, total, onConfirmar, onClose }) {
         creadoEn: serverTimestamp(),
       });
 
-      setCodigoPedido(ref.id);
-      onConfirmar(ref.id);
+      const pedidoId = ref.id;
+      setCodigoPedido(pedidoId);
+
+      // ── Abrir WhatsApp con el resumen del pedido ──
+      const msgWA = generarMensajeWA({
+        nombre: nombre.trim(),
+        carrito,
+        total,
+        tipo,
+        direccion: tipo === "domicilio" ? direccion.trim() : "Recoge en tienda",
+        codigoPedido: pedidoId,
+      });
+      window.open(`https://wa.me/${WA_NUMBER}?text=${msgWA}`, "_blank");
+
+      onConfirmar(pedidoId);
     } catch (e) {
       alert("Error al enviar el pedido. Intenta de nuevo.");
     }
@@ -255,7 +301,7 @@ function ModalConfirmarPedido({ carrito, total, onConfirmar, onClose }) {
         <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🎉</div>
         <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "2.2rem", color: "#22c55e", marginBottom: "0.5rem" }}>¡Pedido Confirmado!</h2>
         <p style={{ color: S.textoSub, fontFamily: "'Nunito',sans-serif", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-          Guarda este código para rastrear tu pedido en tiempo real.
+          Tu pedido fue registrado y enviado por WhatsApp. Guarda este código para rastrearlo.
         </p>
         <div style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ fontSize: "0.7rem", color: S.textoSub, fontFamily: "'Nunito',sans-serif", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Tu código de pedido</div>
@@ -320,10 +366,17 @@ function ModalConfirmarPedido({ carrito, total, onConfirmar, onClose }) {
               <p style={{ color: S.textoSub, fontFamily: "'Nunito',sans-serif", fontSize: "0.78rem", marginTop: "0.4rem" }}>Incluye barrio y alguna referencia si puedes.</p>
             </div>
           )}
+          {/* Aviso WhatsApp */}
+          <div style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.25)", borderRadius: 10, padding: "0.9rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span style={{ fontSize: "1.4rem" }}>💬</span>
+            <p style={{ fontFamily: "'Nunito',sans-serif", fontSize: "0.8rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>
+              Al confirmar, tu pedido se registra <strong style={{ color: "#25d366" }}>y</strong> se envía automáticamente por <strong style={{ color: "#25d366" }}>WhatsApp</strong> para coordinarlo.
+            </p>
+          </div>
         </div>
         <div style={{ padding: "1.25rem", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
           <button onClick={confirmar} disabled={!valido || enviando} style={{ width: "100%", background: valido ? S.naranja : "rgba(245,166,35,0.25)", color: valido ? S.oscuro : S.textoSub, border: "none", borderRadius: 10, padding: "14px", fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: "1rem", cursor: valido ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
-            {enviando ? "Enviando..." : "✅ Confirmar Pedido"}
+            {enviando ? "Enviando..." : "✅ Confirmar y enviar por WhatsApp"}
           </button>
         </div>
       </div>
@@ -370,7 +423,6 @@ function SeccionHeader({ emoji, bg, border, titulo, sub }) {
 }
 
 // ── MODAL OPCIONES ──
-// FIX: Faltaban las llaves { } del cuerpo de la función y el return () correcto
 function ModalOpciones({ item, onConfirm, onClose }) {
   const [sel, setSel] = useState(null);
   return (
@@ -511,6 +563,11 @@ export default function App() {
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; }
         .adiciones-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+
+        /* ── NAVBAR RESPONSIVE ── */
+        .nav-desktop { display: flex; }
+        .nav-mobile  { display: none; }
+
         @media (max-width: 900px) {
           .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
           .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
@@ -525,72 +582,118 @@ export default function App() {
           .pasos-grid { flex-direction: column !important; align-items: center !important; }
           .footer-grid { flex-direction: column !important; gap: 2rem !important; }
           .paso-linea { display: none !important; }
-          .nav-links-desktop { display: none !important; }
+          /* En móvil: ocultar desktop, mostrar mobile */
+          .nav-desktop { display: none !important; }
+          .nav-mobile  { display: flex !important; }
         }
       `}</style>
 
       <WatermarkBg />
 
-      {/* FIX: Todo el contenido está correctamente dentro del div raíz, no dentro del <nav> */}
       <div style={{ position: "relative", zIndex: 1 }}>
-        {/* NAVBAR */}
-        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 2rem", height: "64px", background: "rgba(17,16,9,0.93)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(245,166,35,0.15)" }}>
-          <button onClick={() => setPagina("inicio")} style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "none", border: "none", cursor: "pointer" }}>
-            <LogoSVG size={42} id="nav" />
+
+        {/* ══════════════════════════════════
+            NAVBAR
+           ══════════════════════════════════ */}
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "0 2rem", height: "64px",
+          background: "rgba(17,16,9,0.93)", backdropFilter: "blur(14px)",
+          borderBottom: "1px solid rgba(245,166,35,0.15)"
+        }}>
+
+          {/* ── LOGO / BRAND ──
+              Desktop → va a "inicio"
+              Móvil   → va directo a "admin"  (clase nav-mobile lo reemplaza) */}
+          <button
+            onClick={() => setPagina("inicio")}
+            className="nav-desktop"
+            style={{ alignItems: "center", gap: "0.75rem", background: "none", border: "none", cursor: "pointer" }}
+          >
+            <LogoSVG size={42} id="nav-d" />
             <div style={{ textAlign: "left" }}>
               <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: "1.1rem", lineHeight: 1, color: S.texto }}>Rellenitas XD</div>
               <div style={{ fontSize: "0.65rem", color: S.textoSub, letterSpacing: "0.1em", textTransform: "uppercase" }}>El sabor de verdad</div>
             </div>
           </button>
-          <div className="nav-links-desktop" style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-            <button className={`nav-link ${pagina === "inicio" ? "active" : ""}`} onClick={() => setPagina("inicio")}>Inicio</button>
-            <button className="nav-link" onClick={() => setCarritoAbierto(true)}>🛒 Mi pedido</button>
-            <button className={`nav-link ${pagina === "pedidos" ? "active" : ""}`} onClick={() => setPagina("pedidos")}>🔍 Rastrear pedido</button>
-            <button className={`nav-link ${pagina === "admin" ? "active" : ""}`} onClick={() => setPagina("admin")}>🔐 Admin</button>
-            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-              {pagina === "inicio" && (
-                <button
-                  className="btn-outline"
-                  style={{ padding: "8px 16px", fontSize: "0.85rem" }}
-                  onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-                >
-                  Ver Menú
-                </button>
-              )}
-             <img
-  src="/1 p.jpg"
-  alt="Logo"
-  style={{ width: 45, height: 45, cursor: "pointer", borderRadius: "50%" }}
-  onClick={() => {
-    const taps = (window.logoTaps || 0) + 1;
-    window.logoTaps = taps;
-    setTimeout(() => { window.logoTaps = 0; }, 2000);
-    if (taps >= 5) {
-      setAdminMode(true);
-      alert("Modo profesional activado");
-      window.logoTaps = 0;
-    }
-  }}
-/>  
-              
-              <button
-                onClick={() => setCarritoAbierto(true)}
-                className={totalItems > 0 ? "pulse" : ""}
-                style={{ background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)", color: totalItems > 0 ? S.oscuro : S.texto, border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                🛒
-                {totalItems > 0 && (
-                  <span style={{ background: S.oscuro, color: S.naranja, borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 800 }}>
-                    {totalItems}
-                  </span>
-                )}
-              </button>
+
+          {/* Versión móvil del logo → lleva a admin */}
+          <button
+            onClick={() => setPagina("admin")}
+            className="nav-mobile"
+            style={{ alignItems: "center", gap: "0.75rem", background: "none", border: "none", cursor: "pointer" }}
+          >
+            <LogoSVG size={42} id="nav-m" />
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: "1.1rem", lineHeight: 1, color: S.texto }}>Rellenitas XD</div>
+              <div style={{ fontSize: "0.65rem", color: S.textoSub, letterSpacing: "0.1em", textTransform: "uppercase" }}>El sabor de verdad</div>
             </div>
+          </button>
+
+          {/* ── LINKS DESKTOP: solo Rastrear + Carrito ── */}
+          <div className="nav-desktop" style={{ alignItems: "center", gap: "0.75rem" }}>
+            <button
+              className={`nav-link ${pagina === "pedidos" ? "active" : ""}`}
+              onClick={() => setPagina("pedidos")}
+            >
+              🔍 Rastrear pedido
+            </button>
+
+            <button
+              onClick={() => setCarritoAbierto(true)}
+              className={totalItems > 0 ? "pulse" : ""}
+              style={{
+                background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)",
+                color: totalItems > 0 ? S.oscuro : S.texto,
+                border: "none", borderRadius: 8, padding: "10px 20px",
+                cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontWeight: 700,
+                display: "flex", alignItems: "center", gap: "0.5rem"
+              }}
+            >
+              🛒
+              {totalItems > 0 && (
+                <span style={{
+                  background: S.oscuro, color: S.naranja, borderRadius: "50%",
+                  width: 22, height: 22, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: "0.75rem", fontWeight: 800
+                }}>
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* ── LINKS MÓVIL: solo carrito ── */}
+          <div className="nav-mobile" style={{ alignItems: "center", gap: "0.5rem" }}>
+            <button
+              onClick={() => setCarritoAbierto(true)}
+              className={totalItems > 0 ? "pulse" : ""}
+              style={{
+                background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)",
+                color: totalItems > 0 ? S.oscuro : S.texto,
+                border: "none", borderRadius: 8, padding: "10px 16px",
+                cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontWeight: 700,
+                display: "flex", alignItems: "center", gap: "0.5rem"
+              }}
+            >
+              🛒
+              {totalItems > 0 && (
+                <span style={{
+                  background: S.oscuro, color: S.naranja, borderRadius: "50%",
+                  width: 22, height: 22, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: "0.75rem", fontWeight: 800
+                }}>
+                  {totalItems}
+                </span>
+              )}
+            </button>
           </div>
         </nav>
 
-        {/* PÁGINAS */}
-        {/* FIX: El bloque condicional de páginas ahora está correctamente FUERA del <nav> */}
+        {/* ══════════════════════════════════
+            PÁGINAS
+           ══════════════════════════════════ */}
         {(pagina === "pedidos" || pagina === "admin") ? (
           <PaginaPedidos vista={pagina === "admin" ? "admin" : "cliente"} codigoInicial={pedidoConfirmadoId} />
         ) : (
@@ -697,7 +800,7 @@ export default function App() {
                 </div>
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <h4 style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: S.naranja, marginBottom: "1.2rem" }}>📞 DOMICILIOS</h4>
-                  <a href="https://wa.me/573103830424" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: S.verde, color: "white", borderRadius: 10, padding: "12px 18px", textDecoration: "none", fontFamily: "'Nunito',sans-serif", fontWeight: 700, fontSize: "0.95rem" }}>
+                  <a href={`https://wa.me/${WA_NUMBER}`} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: S.verde, color: "white", borderRadius: 10, padding: "12px 18px", textDecoration: "none", fontFamily: "'Nunito',sans-serif", fontWeight: 700, fontSize: "0.95rem" }}>
                     💬 WhatsApp +57 3103830424
                   </a>
                 </div>
@@ -710,19 +813,24 @@ export default function App() {
           </>
         )}
 
-        {/* MODALES */}
+        {/* ══════════════════════════════════
+            MODALES
+           ══════════════════════════════════ */}
         {modalSaborItem && <ModalSabor item={modalSaborItem} onConfirm={confirmarSabor} onClose={() => setModalSaborItem(null)} />}
         {modalItem && <ModalAdiciones item={modalItem} onConfirm={agregarConAdiciones} onClose={() => setModalItem(null)} />}
         {modalOpcionesItem && <ModalOpciones item={modalOpcionesItem} onConfirm={confirmarOpciones} onClose={() => setModalOpcionesItem(null)} />}
         {modalConfirmar && (
           <ModalConfirmarPedido
-            carrito={carrito} total={total}
+            carrito={carrito}
+            total={total}
             onConfirmar={onPedidoConfirmado}
             onClose={() => { setModalConfirmar(false); if (pedidoConfirmadoId) irAPedidos(); }}
           />
         )}
 
-        {/* CARRITO */}
+        {/* ══════════════════════════════════
+            CARRITO (panel lateral)
+           ══════════════════════════════════ */}
         {carritoAbierto && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex" }}>
             <div onClick={() => setCarritoAbierto(false)} style={{ flex: 1, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
@@ -763,7 +871,11 @@ export default function App() {
                     <span style={{ color: S.textoSub }}>Total</span>
                     <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1.5rem", color: S.naranja }}>$ {total.toLocaleString("es-CO")}</span>
                   </div>
-                  <button className="btn-naranja" onClick={() => { setCarritoAbierto(false); setModalConfirmar(true); }} style={{ width: "100%", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <button
+                    className="btn-naranja"
+                    onClick={() => { setCarritoAbierto(false); setModalConfirmar(true); }}
+                    style={{ width: "100%", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+                  >
                     ✅ Confirmar Pedido
                   </button>
                 </div>
