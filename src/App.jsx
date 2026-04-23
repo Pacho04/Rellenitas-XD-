@@ -551,14 +551,79 @@ export default function App() {
             <button className={`nav-link ${pagina === "pedidos" ? "active" : ""}`} onClick={() => setPagina("pedidos")}>🔍 Rastrear pedido</button>
             <button className={`nav-link ${pagina === "admin" ? "active" : ""}`} onClick={() => setPagina("admin")}>🔐 Admin</button>
           </div>
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {pagina === "inicio" && (
-              <button className="btn-outline" style={{ padding: "8px 16px", fontSize: "0.85rem" }} onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}>Ver Menú</button>
-            )}
-            <button onClick={() => setCarritoAbierto(true)} className={totalItems > 0 ? "pulse" : ""} style={{ background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)", color: totalItems > 0 ? S.oscuro : S.texto, border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontFamily: "'Nunito',sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.2s" }}>
-              🛒 {totalItems > 0 && <span style={{ background: S.oscuro, color: S.naranja, borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 800 }}>{totalItems}</span>}
-            </button>
-          </div>
+       <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+
+  {pagina === "inicio" && (
+    <button
+      className="btn-outline"
+      style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+      onClick={() =>
+        document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })
+      }
+    >
+      Ver Menú
+    </button>
+  )}
+
+  {/* BOTÓN ADMIN SOLO EN CELULAR */}
+  {window.innerWidth < 640 && (
+    <button
+      onClick={() => setPagina("admin")}
+      style={{
+        background: "#f5a623",
+        color: "#111009",
+        border: "none",
+        borderRadius: 8,
+        padding: "10px 14px",
+        cursor: "pointer",
+        fontWeight: 800,
+        fontSize: "1rem"
+      }}
+    >
+      🔐
+    </button>
+  )}
+
+  <button
+    onClick={() => setCarritoAbierto(true)}
+    className={totalItems > 0 ? "pulse" : ""}
+    style={{
+      background: totalItems > 0 ? S.naranja : "rgba(255,255,255,0.08)",
+      color: totalItems > 0 ? S.oscuro : S.texto,
+      border: "none",
+      borderRadius: 8,
+      padding: "10px 20px",
+      cursor: "pointer",
+      fontFamily: "'Nunito',sans-serif",
+      fontWeight: 700,
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+      transition: "all 0.2s"
+    }}
+  >
+    🛒
+    {totalItems > 0 && (
+      <span
+        style={{
+          background: S.oscuro,
+          color: S.naranja,
+          borderRadius: "50%",
+          width: 22,
+          height: 22,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "0.75rem",
+          fontWeight: 800
+        }}
+      >
+        {totalItems}
+      </span>
+    )}
+  </button>
+
+</div>
         </nav>
 
         {/* PÁGINAS */}
